@@ -1,20 +1,14 @@
 #Loads the fine-tuned LoRA adapter and classifies text as positive or negative.
-#
-#Two ways to use it:
-#   python predict.py                  #interactive mode, type sentences
-#   from predict import classify       #import in another script
 
 import os
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from peft import PeftModel
 
-
 ADAPTER_DIR = os.path.join("models", "lora_adapter")
 MODEL_NAME = "distilbert-base-uncased"
 MAX_LENGTH = 128
 LABEL_NAMES = {0: "NEGATIVE", 1: "POSITIVE"}
-
 
 def load_model():
     #Loads base DistilBERT + the LoRA adapter on top. Raises if not trained yet.
@@ -27,7 +21,6 @@ def load_model():
     model = PeftModel.from_pretrained(base, ADAPTER_DIR)
     model.eval()
     return tokenizer, model
-
 
 def classify(text, tokenizer, model):
     #Returns a dict with label, confidence, and per-class probabilities.
@@ -50,7 +43,6 @@ def classify(text, tokenizer, model):
         "prob_positive": round(float(probs[1]), 4),
     }
 
-
 def run_interactive():
     print("\n=== Sentiment classifier (DistilBERT + LoRA) ===")
     print("Type a sentence and press Enter. Type 'quit' to exit.\n")
@@ -66,7 +58,6 @@ def run_interactive():
               "  (confidence=" + str(result["confidence"]) +
               "  neg=" + str(result["prob_negative"]) +
               "  pos=" + str(result["prob_positive"]) + ")\n")
-
 
 if __name__ == "__main__":
     run_interactive()

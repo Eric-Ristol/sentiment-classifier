@@ -1,14 +1,8 @@
 #Everything related to the data: generating synthetic movie reviews,
-#loading them, tokenizing, and splitting into train/val/test.
-#
-#The synthetic reviews are simple template sentences. The model needs to
-#learn that certain words signal positive vs negative, which is exactly
-#what a real sentiment classifier does.
 
 import os
 import random
 import pandas as pd
-
 
 DATA_DIR = "data"
 TRAIN_CSV = os.path.join(DATA_DIR, "train.csv")
@@ -53,7 +47,6 @@ NEGATIVE_ADJS = [
     "painful", "unbearable", "laughable", "miserable", "dismal",
 ]
 
-
 def generate_dataset(n_train=800, n_val=100, n_test=100, seed=42):
     #Generates train/val/test CSVs with synthetic movie reviews.
     #Each row has "text" and "label" (0=negative, 1=positive).
@@ -85,7 +78,6 @@ def generate_dataset(n_train=800, n_val=100, n_test=100, seed=42):
           str(n_val) + " val / " + str(n_test) + " test samples.")
     return train_df, val_df, test_df
 
-
 def load_splits():
     #Loads the CSVs. Auto-generates if they don't exist yet.
     if not os.path.exists(TRAIN_CSV):
@@ -94,7 +86,6 @@ def load_splits():
     val_df = pd.read_csv(VAL_CSV)
     test_df = pd.read_csv(TEST_CSV)
     return train_df, val_df, test_df
-
 
 def tokenize_df(tokenizer, df, max_length=128):
     #Tokenizes a dataframe's "text" column. Returns a dict with
@@ -109,7 +100,6 @@ def tokenize_df(tokenizer, df, max_length=128):
     )
     enc["labels"] = torch.tensor(df["label"].values, dtype=torch.long)
     return enc
-
 
 if __name__ == "__main__":
     generate_dataset()

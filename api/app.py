@@ -1,14 +1,4 @@
 #FastAPI wrapper around the sentiment classifier.
-#Loads the LoRA model once at startup, then serves predictions via REST.
-#
-#Run it:
-#   uvicorn api.app:app --reload
-#   (or pick option VII from main.py)
-#
-#Endpoints:
-#   GET  /           serves the interactive web page
-#   POST /predict    takes {"text": "..."}, returns label + confidence + probs
-#   GET  /health     simple health check
 
 import os
 import sys
@@ -21,7 +11,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import predict
-
 
 app = FastAPI(
     title="Sentiment Classifier API",
@@ -37,10 +26,8 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 tokenizer = None
 model = None
 
-
 class PredictRequest(BaseModel):
     text: str
-
 
 class PredictResponse(BaseModel):
     text: str
@@ -49,7 +36,6 @@ class PredictResponse(BaseModel):
     prob_negative: float
     prob_positive: float
 
-
 @app.on_event("startup")
 def load_model_on_startup():
     global tokenizer, model
@@ -57,12 +43,10 @@ def load_model_on_startup():
     tokenizer, model = predict.load_model()
     print("Model ready.")
 
-
 @app.get("/")
 def serve_frontend():
     #Serves the main HTML page.
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
-
 
 @app.post("/predict", response_model=PredictResponse)
 def predict_sentiment(req: PredictRequest):
@@ -73,7 +57,6 @@ def predict_sentiment(req: PredictRequest):
         raise HTTPException(status_code=503, detail="Model not loaded yet.")
     result = predict.classify(req.text, tokenizer, model)
     return result
-
 
 @app.get("/health")
 def health():

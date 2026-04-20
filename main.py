@@ -9,11 +9,10 @@ import data
 import train
 import predict
 
-
 def print_menu():
     print("")
     print("================================================")
-    print("   LLM FINE-TUNER (DistilBERT + LoRA) — Menu")
+    print("   LLM FINE-TUNER (DistilBERT + LoRA) -- Menu")
     print("================================================")
     print("  I.   Generate synthetic sentiment dataset")
     print("  II.  Train models (base + LoRA + full fine-tune)")
@@ -24,23 +23,19 @@ def print_menu():
     print("  VII. Exit")
     print("------------------------------------------------")
 
-
 def option_generate():
     print("\n>>> Generating synthetic sentiment dataset...")
     data.generate_dataset()
 
-
 def option_train():
     print("\n>>> Starting training pipeline...")
     train.run_training()
-
 
 def option_predict():
     try:
         predict.run_interactive()
     except FileNotFoundError as e:
         print("  [ERR] " + str(e))
-
 
 def option_summary():
     if not os.path.exists(data.TRAIN_CSV):
@@ -54,7 +49,6 @@ def option_summary():
     print("  train label distribution:")
     print("    positive: " + str(int(train_df["label"].sum())))
     print("    negative: " + str(int(len(train_df) - train_df["label"].sum())))
-
 
 def option_comparison():
     path = os.path.join("models", "comparison.csv")
@@ -70,14 +64,12 @@ def option_comparison():
         with open(report_path) as f:
             print(f.read())
 
-
 def option_api():
     print("\n>>> Starting API server at http://localhost:8000")
     print("    Open that URL in your browser to use the web demo.")
     print("    Press Ctrl+C to stop the server.\n")
     import uvicorn
     uvicorn.run("api.app:app", host="0.0.0.0", port=8000, reload=False)
-
 
 def main():
     while True:
@@ -100,7 +92,6 @@ def main():
             sys.exit(0)
         else:
             print("  [ERR] Unknown option. Try I, II, III, IV, V, VI or VII.")
-
 
 if __name__ == "__main__":
     main()

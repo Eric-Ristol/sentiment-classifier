@@ -1,18 +1,4 @@
 #Trains a handful of sentiment classifiers, compares them, saves the best one.
-#
-#Models compared:
-# 1. Base DistilBERT (zero-shot, no training — the baseline).
-# 2. DistilBERT + LoRA fine-tuning (parameter-efficient, only ~0.3% of weights updated).
-# 3. DistilBERT full fine-tuning (all parameters updated — the upper bound).
-#
-#LoRA (Low-Rank Adaptation) freezes the pretrained weights and injects small
-#trainable matrices into the attention layers. The saved adapter is ~1 MB.
-#
-#Concepts used:
-# - model.forward(input_ids, attention_mask)   runs the model
-# - LoRA / PEFT                                parameter-efficient fine-tuning
-# - accuracy, F1                               classification metrics
-# - joblib.dump/load                           saves/loads models to disk
 
 import os
 import numpy as np
@@ -31,12 +17,11 @@ from sklearn.metrics import accuracy_score, f1_score, classification_report
 
 import data
 
-
 MODEL_NAME = "distilbert-base-uncased"
 MODELS_DIR = "models"
 PLOTS_DIR = "plots"
 
-#Hyperparameters — small so it finishes in <2 min on a laptop CPU.
+#Hyperparameters -- small so it finishes in <2 min on a laptop CPU.
 EPOCHS = 3
 BATCH_SIZE = 16
 LR = 2e-4
@@ -47,7 +32,6 @@ LORA_R = 8
 LORA_ALPHA = 16
 LORA_DROPOUT = 0.1
 
-
 def make_dataloader(encodings, batch_size=BATCH_SIZE, shuffle=False):
     #Wraps tokenized data into a DataLoader. No custom class needed.
     ds = TensorDataset(
@@ -56,7 +40,6 @@ def make_dataloader(encodings, batch_size=BATCH_SIZE, shuffle=False):
         encodings["labels"],
     )
     return DataLoader(ds, batch_size=batch_size, shuffle=shuffle)
-
 
 def evaluate(model, loader, device):
     #Runs the model on a dataloader and returns accuracy + f1.
@@ -72,7 +55,6 @@ def evaluate(model, loader, device):
     acc = accuracy_score(all_labels, all_preds)
     f1 = f1_score(all_labels, all_preds, average="binary")
     return {"accuracy": acc, "f1": f1, "labels": all_labels, "preds": all_preds}
-
 
 def train_loop(model, train_loader, val_loader, device, epochs=EPOCHS, lr=LR):
     #Standard training loop. Returns the list of per-step losses.
@@ -107,7 +89,6 @@ def train_loop(model, train_loader, val_loader, device, epochs=EPOCHS, lr=LR):
               "  val_f1=" + str(round(val["f1"], 4)))
     return losses
 
-
 def plot_loss(losses, save_path):
     #Training loss per step. A downward curve = the model is learning.
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
@@ -120,14 +101,12 @@ def plot_loss(losses, save_path):
     fig.savefig(save_path, dpi=120)
     plt.close(fig)
 
-
 def run_training():
     os.makedirs(MODELS_DIR, exist_ok=True)
     os.makedirs(PLOTS_DIR, exist_ok=True)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(">>> Device: " + str(device))
 
-    #1. Data
     print(">>> Preparing data...")
     train_df, val_df, test_df = data.load_splits()
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
@@ -142,7 +121,6 @@ def run_training():
 
     results = []
 
-    #2. Base model — zero-shot, no training. This is the baseline to beat.
     print("\n>>> Evaluating base DistilBERT (zero-shot)...")
     base_model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=2)
     base_model.to(device)
@@ -152,7 +130,6 @@ def run_training():
     print("    accuracy=" + str(round(base_metrics["accuracy"], 4)) +
           "  f1=" + str(round(base_metrics["f1"], 4)))
 
-    #3. LoRA fine-tuning — freeze the base, train tiny adapter matrices.
     print("\n>>> LoRA fine-tuning (r=" + str(LORA_R) + ", alpha=" + str(LORA_ALPHA) + ")...")
     lora_model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=2)
     lora_model.to(device)
@@ -173,7 +150,6 @@ def run_training():
     results.append({"name": "DistilBERT + LoRA",
                      "accuracy": lora_metrics["accuracy"], "f1": lora_metrics["f1"]})
 
-    #4. Full fine-tuning — update every parameter. Upper bound on performance.
     print("\n>>> Full fine-tuning (all parameters)...")
     full_model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=2)
     full_model.to(device)
@@ -184,8 +160,7 @@ def run_training():
     results.append({"name": "DistilBERT full fine-tune",
                      "accuracy": full_metrics["accuracy"], "f1": full_metrics["f1"]})
 
-    #5. Save everything.
-    #Save LoRA adapter (the interesting artifact — just ~1 MB).
+    #Save LoRA adapter (the interesting artifact -- just ~1 MB).
     adapter_dir = os.path.join(MODELS_DIR, "lora_adapter")
     lora_model.save_pretrained(adapter_dir)
     tokenizer.save_pretrained(adapter_dir)
@@ -208,7 +183,6 @@ def run_training():
     #Training loss plot.
     plot_loss(lora_losses, os.path.join(PLOTS_DIR, "training_loss.png"))
 
-    #6. Print comparison.
     print("\n=== Sorted by accuracy ===")
     print(comp.sort_values("accuracy", ascending=False).to_string(index=False))
 
@@ -217,7 +191,6 @@ def run_training():
           " (accuracy=" + str(round(best["accuracy"], 4)) + ")")
     print("LoRA adapter saved to: " + adapter_dir)
     return comp
-
 
 if __name__ == "__main__":
     run_training()
