@@ -1,8 +1,11 @@
-# LLM Fine-Tuner
+# Sentiment Classifier
 
 Fine-tune **DistilBERT** for binary sentiment classification using **LoRA** (Low-Rank Adaptation), then use it to classify any text as positive or negative.
 
 ---
+
+**[Try the live demo on HuggingFace Spaces](https://huggingface.co/spaces/EricRistol/sentiment-classifier)**
+
 
 ## Why this project
 
@@ -13,6 +16,9 @@ LoRA solves this by freezing the base weights and injecting tiny trainable matri
 This is the same technique (at smaller scale) that companies use to customize GPT and LLaMA for production.
 
 ---
+
+**[Try the live demo on HuggingFace Spaces](https://huggingface.co/spaces/EricRistol/sentiment-classifier)**
+
 
 ## What's in the repo
 
@@ -107,5 +113,8 @@ pytest -q
 Covers: CSV generation, label balance, tokenization shapes, training produces artifacts, LoRA beats base, predictions return valid labels, and sentiment direction is correct.
 
 ---
+
+**[Try the live demo on HuggingFace Spaces](https://huggingface.co/spaces/EricRistol/sentiment-classifier)**
+
 
 Built as part of my AI/ML portfolio. Feedback and issues welcome.
